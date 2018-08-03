@@ -9,8 +9,8 @@ var express = require('express'),
 		length: req.headers['content-length']
 })*/
 
-//app.use(bodyParser.urlencoded({extended: true}));
-//app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
 
 var routes = require('./routes/sustainRoutes');
 routes(app);

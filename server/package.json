@@ -1,0 +1,28 @@
+{
+  "name": "sustain",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "CBuffer": "^2.0.0",
+    "echarts": "^4.1.0",
+    "express": "^4.16.3",
+    "raw-body": "^2.3.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ph1ash/Sustain.git"
+  },
+  "author": "ph1ash",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/ph1ash/Sustain/issues"
+  },
+  "homepage": "https://github.com/ph1ash/Sustain#readme"
+}
