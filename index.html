@@ -2,29 +2,23 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>ECharts</title>
+    <title>Sustain Environment Suite</title>
     <!-- including ECharts file -->
     <script src="./scripts/echarts.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="./styles/main.css">
 </head>
-<body style="background-color: #666;">
+<body>
     <!-- prepare a DOM container with width and height -->
-    <div id="main" style="width:800px;height:600px;color:#eee;"></div>
+    <div id="main" class="graph" style="width:100%;height:600px;"></div>
     <script type="text/javascript">
+		var numDataPts = 500;
+		var mData = {
+			"temperatures": [0],
+			"humidities": [0],
+			"timeStamps": [0]
+			};
         // based on prepared DOM, initialize echarts instance
         var myChart = echarts.init(document.getElementById('main'));
-		var xhttp = new XMLHttpRequest();
-
-		xhttp.onreadystatechange = () => {
-			if (this.readyState == 4 && this.status == 200) {
-				console.log(this.responseText);
-			}
-		}
-		
-		setInterval(() => {
-			xhttp.open("GET", "http://mattdresser.com:3000/sustain", true);
-			xhttp.send();
-		}, 5000);
-
         // specify chart configuration item and data
 
 		var option = {
@@ -34,25 +28,94 @@
 			tooltip: {
 				trigger: 'axis'
 			},
+			axisPointer: {
+				link: {xAxisIndex: 'all'}
+			},
 			legend: {
+				textStyle: { color: '#eee'},
 				data:['Temperature', 'Humidity']
 			},
-			xAxis:  {
-				type: 'category',
-				boundaryGap: false,
-				data: ['time1', 'time2', 'time3', 'time4', 'time5', 'time6', 'time7']
+			backgroundColor: '#333',
+			grid: [{
+				height: '35%'
 			},
-			yAxis: {
-				type: 'value',
-				axisLabel: {
-					formatter: '{value} °F'
+			{
+				height: '35%',
+				top: '55%'
+			}],
+			xAxis: [
+				{
+					type: 'category',
+					boundaryGap: false,
+					data: mData.timeStamps,
+					axisLine: {
+						lineStyle: { color: '#bbb' }
+					},
+					scale: 'true'
+				},
+				{
+					gridIndex: 1,
+					type: 'category',
+					boundaryGap: false,
+					data: mData.timeStamps,
+					axisLine: {
+						lineStyle: { color: '#bbb' }
+					},
+					scale: 'true'
 				}
-			},
+			],
+			yAxis: [
+				{
+					name: 'Temperature °F',
+					type: 'value',
+					lineStyle: { color: '#999'},
+					axisLabel: {
+						textStyle: { color: '#eee'},
+						formatter: '{value} °F'
+					},
+					axisLine: {
+						lineStyle: { color: '#bbb' }
+					},
+					scale: 'true'
+				},
+				{
+					gridIndex: 1,
+					name: 'Humidity %',
+					type: 'value',
+					lineStyle: { color: '#999'},
+					axisLabel: {
+						textStyle: { color: '#eee'},
+						formatter: '{value} %'
+					},
+					axisLine: {
+						lineStyle: { color: '#bbb' }
+					},
+					scale: 'true'
+				}
+			],
+			dataZoom: [
+				{
+					type: 'slider',
+					filterMode: 'empty',
+					xAxisIndex: [0, 1]
+				},
+				{
+					type: 'slider',
+					yAxisIndex: [0],
+					filterMode: 'empty'
+				},
+				{
+					type: 'slider',
+					yAxisIndex: [1],
+					filterMode: 'empty'
+				},
+				
+			],
 			series: [
 				{
 					name:'Temperature',
 					type:'line',
-					data:[11, 11, 15, 13, 12, 13, 10],
+					data: mData.temperatures,
 					markPoint: {
 						data: [
 							{type: 'max', name: 'High'},
@@ -68,7 +131,9 @@
 				{
 					name:'Humidity',
 					type:'line',
-					data:[1, -2, 2, 5, 3, 2, 0],
+					xAxisIndex: 1,
+					yAxisIndex: 1,
+					data:mData.humidities,
 					markLine: {
 						data: [
 							{type: 'average', name: 'Average'}
@@ -78,8 +143,61 @@
 			]
 		};
 
-        // use configuration item and data specified to show chart
-        myChart.setOption(option);
+
+		var xhttp = new XMLHttpRequest();
+
+			
+		formatSensorData = (serverData) => {
+			var start = serverData.start;
+			var length = serverData.length;
+			var size = serverData.size;
+			var sensorData = {
+				"temperatures": [],
+				"humidities": [],
+				"timeStamps": []
+			};
+
+			for (var idx = 0; idx < length; idx++) {
+				var arrayIdx = idx + start;
+				// Check if we need to loop back around (i.e idx 502 -> idx 2)
+				if (arrayIdx >= size) {
+					arrayIdx -= size;
+				}
+				
+				// Only keep the desired amount of data points
+				if (sensorData.temperatures.length >= numDataPts) {
+					sensor.temperatures.shift();
+					sensor.humidities.shift();
+					sensor.timeStamps.shift();
+				}
+
+				sensorData.temperatures.push(serverData.data[arrayIdx].temperature);	
+				sensorData.humidities.push(serverData.data[arrayIdx].humidity);
+				sensorData.timeStamps.push(serverData.data[arrayIdx].timeStamp);
+			}
+
+			return sensorData;  
+		}
+
+		xhttp.onreadystatechange = () => {
+			if(xhttp.status == 200 && xhttp.readyState == 4) {
+				mData = formatSensorData(JSON.parse(xhttp.responseText));
+				option.xAxis[0].data = mData.timeStamps;
+				option.xAxis[1].data = mData.timeStamps;
+				option.series[0].data = mData.temperatures;
+				option.series[1].data = mData.humidities;
+				myChart.setOption(option);
+				console.debug(mData.timeStamps);
+			}
+		}
+		
+		setInterval(() => {
+			xhttp.open("GET", "https://sustain.mattdresser.com:3000/sustain", true);
+			xhttp.send();
+		}, 5000);
+
+		xhttp.open("GET", "https://sustain.mattdresser.com:3000/sustain", true);
+		xhttp.send();
     </script>
 </body>
 </html>

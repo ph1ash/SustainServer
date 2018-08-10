@@ -12,9 +12,10 @@ exports.updateSensorData = (req, res) => {
 	var sensor = {
 		"temperature": req.body.temp,
 		"humidity": req.body.humidity,
-		"lastUpdate": req.body.time
+		"timeStamp": req.body.time
 	}
 	sensorDataBuf.push(sensor);
-	console.log(sensorDataBuf);
+	var latest = sensorDataBuf.end;
+	console.log("Latest: " + JSON.stringify(sensorDataBuf.data[latest]));
 	res.sendStatus(200);
 };

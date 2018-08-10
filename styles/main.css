@@ -1,0 +1,10 @@
+body {
+	background-color: #333;
+	color: #fff;
+}
+
+#graph {
+	margin: auto;
+	border: 3px solid black;
+	padding: 10px;
+}
