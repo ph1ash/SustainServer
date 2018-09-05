@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { SensorService } from './sensor.service';
+import { Sensor, SensorService } from './sensor.service';
 
 @Component({
     selector: 'sensor-core',
@@ -8,24 +8,20 @@ import { SensorService } from './sensor.service';
     providers: [ SensorService ]
 })
 
-export interface Sensor {
-    deviceId: string;
-    timeStamp: string;
-    temperature?: float;
-    humidity?: float;
-}
 
 export class SensorComponent implements OnInit{
 
     options: any;
-    var baseUri = "https://mattdresser.com:8086/query?db=sustain";
+    baseUri: string = "https://mattdresser.com:8086/query?db=sustain";
+
+    sensorList: Sensor[];
 
     constructor(private sensorService: SensorService) {}
 
     ngOnInit()
     {
 
-		var mData = {
+    var mData = {
 			"temperatures": [0],
 			"humidities": [0],
 			"timeStamps": [0]
@@ -37,7 +33,7 @@ export class SensorComponent implements OnInit{
 		const data1 = [];
 		const data2 = [];
 
-		this.options = 
+		this.options =
 		{
 			title: {
 				text: 'Environment Monitor 1',
@@ -160,8 +156,10 @@ export class SensorComponent implements OnInit{
 			]
 		};
 
-        this.sensorService.getSensors()
-            .subscribe((data: ))
+        this.sensorService.getDeviceList()
+            .subscribe((data: Sensor[]) => {
+                console.log(data);
+            });
 
         setInterval(() => {
          //var data = getSensorData();
