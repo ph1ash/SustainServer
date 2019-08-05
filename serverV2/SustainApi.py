@@ -26,7 +26,7 @@ class Temperature(Resource):
 
     def post(self):
         # Define argument listener for temperature
-        parser.add_argument('temperature', type=float)
+        parser.add_argument('value', type=float)
         args = parser.parse_args()
         return ValidateAppIdThenRun(PostDataHandler, 'temperature')
 
@@ -36,9 +36,19 @@ class VOC(Resource):
 
     def post(self):
         # Define argument listener for VOC
-        parser.add_argument('voc', type=float)
+        parser.add_argument('value', type=float)
         args = parser.parse_args()
-        return ValidateAppIdThenRun(PostDataHandler, 'voc')
+        return ValidateAppIdThenRun(PostDataHandler, 'tVOC')
+
+class eCO(Resource):
+    def get(self):
+        return ValidateAppIdThenRun(GetECOData)
+
+    def post(self):
+        # Define argument listener for eCO
+        parser.add_argument('value', type=float)
+        args = parser.parse_args()
+        return ValidateAppIdThenRun(PostDataHandler, 'eCO2')
 
 class Humidity(Resource):
     def get(self):
@@ -46,7 +56,7 @@ class Humidity(Resource):
 
     def post(self):
         # Define argument listener for humidity
-        parser.add_argument('humidity', type=float)
+        parser.add_argument('value', type=float)
         args = parser.parse_args()
         return ValidateAppIdThenRun(PostDataHandler, 'humidity')
 
@@ -72,12 +82,12 @@ def PostDataHandler(field):
     result = False
 
     # Populate the JSON if we get temperature data
-    if (args[field]!=None):
-        jsonToPost[0]['fields']={field: args[field]}
+    if (args['value']!=None):
+        jsonToPost[0]['fields']={field: args['value']}
         result = handler.write(jsonToPost)
     else:
         # User provided no data for the defined field
-        parser.remove_argument(field)
+        parser.remove_argument('value')
         return "No argument provided", 400
 
     parser.remove_argument(field)
@@ -92,10 +102,14 @@ def GetTemperatureData():
 def GetVOCData():
     return {"I see you want some VOC data": "my dude"}, 200
 
+def GetECOData():
+    return {"I see you want some eCO2 data": "my dude"}, 200
+
 def GetHumidityData():
     return {"I see you want some humidity data": "my dude"}, 200
 
 def Initialize(api):
     api.add_resource(Temperature, "/api/temperature")
     api.add_resource(Humidity, "/api/humidity")
-    api.add_resource(VOC, "/api/voc")
+    api.add_resource(VOC, "/api/tvoc")
+    api.add_resource(eCO, "/api/eco2")
